@@ -7,8 +7,9 @@
 def num (s):
     try:
         return int(s)
-    except exceptions.ValueError:
+    except ValueError:
         return float(s)
+    
 
 def uniqify(seq, idfun=None):  
   return list(set(map(idfun, seq)))
@@ -22,16 +23,20 @@ import rfc822 # deprecated in python3
 import time
 script_start_time = time.time()
 
-
+ 
 #### connecting to mysql
-import oursql
-conn = oursql.connect(host='localhost', user='root', db='dijscrape', port=3306)
+import MySQLdb
+#import oursql
+conn = MySQLdb.connect(host='localhost', user='root', passwd='', db='dijscrape')
+#conn = oursql.connect(host='localhost', user='root', db='dijscrape', port=3306)
 curs = conn.cursor()
 
 #### settings ####
 user_email_address = 'foobar@gmail.com'
 user_email_pw = 'foobar'
 
+user_email_address = 'felix1265@gmail.com'
+user_email_pw = 'helloworld12345'
 #####################################
 ### extracting the phone numbers ###
 ################# thanks to this thread: http://stackoverflow.com/questions/123559/a-comprehensive-regex-for-phone-number-validation
@@ -128,3 +133,7 @@ elapsed_minutes = elapsed_seconds/60
 
 print "The script took", elapsed_seconds, "seconds to run, which is the same as", elapsed_minutes, "minutes"
 print gmail_all_mail_message_count, "messages were processed"
+
+curs.close()
+conn.commit()
+conn.close()
