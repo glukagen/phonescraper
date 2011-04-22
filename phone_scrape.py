@@ -58,7 +58,8 @@ parser = HeaderParser() # we'll instantiate it now
 print 'Connecting to the Google IMAP server'
 server= imaplib.IMAP4_SSL('imap.googlemail.com')
 server.login(user_email_address, user_email_pw)
-resp, gmail_all_mail_message_count_list = server.select('[Gmail]/All Mail', readonly=True)
+#resp, gmail_all_mail_message_count_list = server.select('[Gmail]/All Mail', readonly=True)
+resp, gmail_all_mail_message_count_list = server.select()
 gmail_all_mail_message_count = num(gmail_all_mail_message_count_list[0])
 print "Messages to process:", gmail_all_mail_message_count
 
@@ -100,32 +101,34 @@ for message_num in list_of_messages[0].split():
     print 'about to insert into the database'
     ### sometimes it fails due to unicode issues
     try:
-      print 'about to parse name and email from header'
-      print 'header: ' + str(header['From'])
-      name, email = email_re.match(header['From']).groups()[1:3]
-      print 'parsing name and email from FROM header: ' + str(name) + ', ' + str(email)
-      curs.execute('''INSERT INTO messages
-        (sender,recipient,sender_name,sender_email,subject,msg_date,payload)
-        VALUES
-        (?,?,?,?,?,?,?)
-        ''',
-        (header['From'],header['To'],name,email,header['Subject'],ts_mysql_datetime,text_payload[0:65534]))
-      message_id_local_mysql = curs.lastrowid
-      print 'saved as msg id ' + str(message_id_local_mysql)
+        print 'about to parse name and email from header'
+        print 'header: ' + str(header['From'])
+        name, email = email_re.match(header['From']).groups()[1:3]
+        print 'parsing name and email from FROM header: ' + str(name) + ', ' + str(email)
+        curs.execute('''INSERT INTO messages
+          (sender,recipient,sender_name,sender_email,subject,msg_date,payload)
+          VALUES
+          (?,?,?,?,?,?,?)
+          ''',
+          (header['From'],header['To'],name,email,header['Subject'],ts_mysql_datetime,text_payload[0:65534]))
+        message_id_local_mysql = curs.lastrowid
+        print 'saved as msg id ' + str(message_id_local_mysql)
+        
+        pure_digits = uniqify(map(''.join, found_digits)) # the phone number regexp will create lists like ['','650','555','1212']. this collapses the list into a string. 
+
+        print 'We found pure digits: ' + str(pure_digits)
+        for phone_number in pure_digits:
+          if len(str(phone_number))>7:  # for now, we want numbers with area codes only.
+            print phone_number
+            curs.execute('''INSERT INTO phone_numbers
+            (message_id, phone_number)
+            VALUES
+            (?,?)
+            ''',
+            (message_id_local_mysql,phone_number))
     except:
-      print "Unexpected error:", sys.exc_info()[0]
-      pass
-    pure_digits = uniqify(map(''.join, found_digits)) # the phone number regexp will create lists like ['','650','555','1212']. this collapses the list into a string. 
-    print 'We found pure digits: ' + str(pure_digits)
-    for phone_number in pure_digits:
-      if len(str(phone_number))>7:  # for now, we want numbers with area codes only.
-        print phone_number
-        curs.execute('''INSERT INTO phone_numbers
-        (message_id, phone_number)
-        VALUES
-        (?,?)
-        ''',
-        (message_id_local_mysql,phone_number))
+        print "Unexpected error:", sys.exc_info()[0]
+        pass
 
 script_end_time = time.time()
 elapsed_seconds= script_end_time - script_start_time
