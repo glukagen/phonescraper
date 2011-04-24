@@ -81,7 +81,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'phonescraper.urls'
+ROOT_URLCONF = 'addressbook.urls'
 
 TEMPLATE_DIRS = (
     os.path.join(ROOT_PATH, './templates'),
