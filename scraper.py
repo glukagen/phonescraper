@@ -155,17 +155,12 @@ class IMAPConnecter:
         #print imap
         return imap
 
-def fetch(email, password, message_number):
-    print('module name:', __name__)
-    print "%s %s %s " % (email, password, message_number)
-
 class Scraper:
     
     def __init__(self, email, password):
         self.email = email
         self.password = password
         self.analizers = []
-        self.executers = []
         
     def startThread(self, thread):
         while threading.activeCount() >= MAX_THREAD:
@@ -206,9 +201,6 @@ class Scraper:
             self.executers.append(executer)
             self.startThread(executer)
         """
-            
-        for executer in self.executers:
-            executer.join()
             
         for analizer in self.analizers:
             analizer.join()
