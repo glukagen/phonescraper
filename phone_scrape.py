@@ -37,6 +37,7 @@ user_email_pw = 'foobar'
 
 user_email_address = 'felix1265@gmail.com'
 user_email_pw = 'helloworld12345'
+
 #####################################
 ### extracting the phone numbers ###
 ################# thanks to this thread: http://stackoverflow.com/questions/123559/a-comprehensive-regex-for-phone-number-validation
@@ -69,11 +70,14 @@ response, list_of_messages = server.search(None, 'ALL')
 import sys
 
 ## going through each message one by one ##
-for message_num in list_of_messages[0].split():
+for message_num in range(1, 100):#list_of_messages[0].split():
   print 'processing message num: ' + str(message_num)
   try:
     response, message_data = server.fetch(message_num, '(BODY.PEEK[HEADER])') 
   except:
+    print "Exception in HEADER"
+    print response
+    print message_data
     continue
   raw_message = message_data[0][1] # message_data, the data structure returned by imaplib, encodes some data re: the request type
   header = parser.parsestr(raw_message)
@@ -82,9 +86,15 @@ for message_num in list_of_messages[0].split():
   try:
     response, message_data = server.fetch(message_num, '(BODY.PEEK[TEXT])') 
   except:
+    print "Exception in TEXT"
+    print response
+    print message_data
     continue
-  text_payload = message_data[0][1] 
+  text_payload = message_data[0][1]
+
   found_digits = number_re.findall(text_payload)
+  print "FOUND DIGITS"
+  print found_digits
   if found_digits!=[]:
     print "Message %d has numbers. We are %f%% complete with processing your mail." % (num(message_num), 100*(num(message_num)/gmail_all_mail_message_count))
     print found_digits
