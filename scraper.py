@@ -7,7 +7,7 @@ import MySQLdb
 import re
 import imaplib
 import sys
-from settings import *
+from oldsettings import *
 from email.parser import HeaderParser
 from utils import num, uniqify
 import os

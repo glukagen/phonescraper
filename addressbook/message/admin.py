@@ -8,7 +8,7 @@ class MessageAdmin(admin.ModelAdmin):
 
 class PhoneNumberAdmin(admin.ModelAdmin):
     model = PhoneNumber
-    list_display = ('name', 'email', 'value')
+    list_display = ('name', 'email', 'value', 'preview')
     
     search_fields = ['message__sender_name', 'message__sender_email', 'value',]
     
@@ -17,6 +17,9 @@ class PhoneNumberAdmin(admin.ModelAdmin):
     
     def email(self, phoneNumber):
         return phoneNumber.message.sender_email
+    
+    def preview(self, phoneNumber):
+        return phoneNumber.message.payload
 
 
 admin.site.register(Message, MessageAdmin)
