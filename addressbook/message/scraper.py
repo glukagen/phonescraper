@@ -11,6 +11,7 @@ from models import *
 from email.parser import HeaderParser
 from utils import num, uniqify
 import os
+from django.utils.encoding import smart_unicode
 
 
 nanp_pattern = '(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?'
@@ -71,24 +72,27 @@ class Analizer(threading.Thread):
                 return False
             print 'parsing name and email from FROM header: ' + str(name) + ', ' + str(email)          
 
-            m = Message(
-                sender=header['From'], 
-                recipient=header['To'], 
-                sender_name=str(name), 
-                sender_email=email, 
-                subject=header['Subject'], 
-                date=ts_mysql_datetime,
-                payload=text_payload[0:65534]
-            )
-            m.save()
-           
+            try:
+                m = Message(
+                    sender=header['From'][:255], 
+                    recipient=header['To'][:255], 
+                    sender_name=str(name)[:255], 
+                    sender_email=email[:255], 
+                    subject=header['Subject'][:255], 
+                    date=ts_mysql_datetime,
+                    payload=str(text_payload[:65534])
+                )
+                m.save()
+            except:
+                return False
             pure_digits = uniqify(map(''.join, found_digits)) # the phone number regexp will create lists like ['','650','555','1212']. this collapses the list into a string. 
             
             print 'We found pure digits: ' + str(pure_digits)
             for phone_number in pure_digits:
               if len(str(phone_number)) > 7:  # for now, we want numbers with area codes only.
                   print phone_number
-                  PhoneNumber(value=phone_number, message=m).save()        
+                  PhoneNumber(value=phone_number, message=m).save()   
+                       
     
     def run(self):
         for i in self.numbers:
